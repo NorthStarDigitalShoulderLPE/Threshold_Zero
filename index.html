@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>THRESHOLD ZÉRO — Cold As Hell</title>
+  <meta name="description" content="Threshold Zéro — Un FPS brutal inspiré de DOOM. Incarnez un guerrier surpuissant à travers l'espace, les châteaux et les enfers. Disponible sur App Store et Steam.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --blood: #c41e1e;
+      --blood-glow: #ff2a2a;
+      --ember: #ff6a00;
+      --hellfire: #ff3d00;
+      --void: #050508;
+      --abyss: #0a0a10;
+      --steel: #1a1a24;
+      --gunmetal: #2a2a38;
+      --bone: #e8e0d4;
+      --ash: #9a9494;
+      --frost: #7ec8e3;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Rajdhani', sans-serif;
+      background: var(--void);
+      color: var(--bone);
+      overflow-x: hidden;
+    }
+
+    /* ═══════════════ NAV ═══════════════ */
+    nav {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 1000;
+      background: rgba(5, 5, 8, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(196, 30, 30, 0.2);
+      padding: 0 2rem;
+    }
+
+    nav .nav-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 64px;
+    }
+
+    nav .logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.6rem;
+      letter-spacing: 6px;
+      color: var(--blood);
+      text-decoration: none;
+      text-shadow: 0 0 20px rgba(196, 30, 30, 0.4);
+    }
+
+    nav .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    nav .nav-links a {
+      color: var(--ash);
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      transition: color 0.3s, text-shadow 0.3s;
+    }
+
+    nav .nav-links a:hover {
+      color: var(--blood-glow);
+      text-shadow: 0 0 12px rgba(255, 42, 42, 0.5);
+    }
+
+    /* ═══════════════ HERO ═══════════════ */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      padding: 2rem;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 50% 80%, rgba(196, 30, 30, 0.15) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 40% at 20% 20%, rgba(255, 106, 0, 0.08) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 50% at 80% 30%, rgba(126, 200, 227, 0.05) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 200px;
+      background: linear-gradient(transparent, var(--void));
+      pointer-events: none;
+    }
+
+    .hero-badge {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      color: var(--ember);
+      border: 1px solid rgba(255, 106, 0, 0.3);
+      padding: 6px 20px;
+      margin-bottom: 2rem;
+      animation: flicker 4s infinite;
+    }
+
+    @keyframes flicker {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+      75% { opacity: 1; }
+      77% { opacity: 0.4; }
+      79% { opacity: 1; }
+    }
+
+    .hero-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(4rem, 12vw, 10rem);
+      line-height: 0.9;
+      letter-spacing: 8px;
+      color: var(--bone);
+      text-shadow:
+        0 0 40px rgba(196, 30, 30, 0.4),
+        0 0 80px rgba(196, 30, 30, 0.2),
+        0 4px 0 rgba(196, 30, 30, 0.6);
+      margin-bottom: 0.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-title span {
+      display: block;
+      color: var(--blood);
+      text-shadow:
+        0 0 60px rgba(255, 42, 42, 0.6),
+        0 0 120px rgba(255, 42, 42, 0.3);
+    }
+
+    .hero-subtitle {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: clamp(1rem, 2.5vw, 1.4rem);
+      letter-spacing: 12px;
+      text-transform: uppercase;
+      color: var(--frost);
+      margin-bottom: 3rem;
+      text-shadow: 0 0 30px rgba(126, 200, 227, 0.3);
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero-tagline {
+      font-size: 1.15rem;
+      font-weight: 400;
+      color: var(--ash);
+      max-width: 600px;
+      line-height: 1.8;
+      position: relative;
+      z-index: 1;
+      margin-bottom: 3rem;
+    }
+
+    .hero-cta {
+      display: flex;
+      gap: 1.5rem;
+      position: relative;
+      z-index: 1;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 36px;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-blood {
+      background: var(--blood);
+      color: #fff;
+      clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+      box-shadow: 0 0 30px rgba(196, 30, 30, 0.3);
+    }
+
+    .btn-blood:hover {
+      background: var(--blood-glow);
+      box-shadow: 0 0 50px rgba(255, 42, 42, 0.5);
+      transform: translateY(-2px);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--bone);
+      border: 1px solid rgba(232, 224, 212, 0.2);
+      clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+    }
+
+    .btn-ghost:hover {
+      border-color: var(--frost);
+      color: var(--frost);
+      box-shadow: 0 0 30px rgba(126, 200, 227, 0.15);
+      transform: translateY(-2px);
+    }
+
+    /* ═══════════════ SECTIONS ═══════════════ */
+    section {
+      padding: 6rem 2rem;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .section-marker {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      color: var(--blood);
+      margin-bottom: 1rem;
+      opacity: 0.7;
+    }
+
+    .section-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2.2rem, 5vw, 3.5rem);
+      letter-spacing: 4px;
+      color: var(--bone);
+      margin-bottom: 2rem;
+      text-shadow: 0 0 20px rgba(196, 30, 30, 0.2);
+    }
+
+    .divider {
+      width: 60px;
+      height: 2px;
+      background: linear-gradient(90deg, var(--blood), transparent);
+      margin-bottom: 2rem;
+    }
+
+    /* ═══════════════ ABOUT ═══════════════ */
+    #about p {
+      font-size: 1.1rem;
+      line-height: 2;
+      color: var(--ash);
+      margin-bottom: 1.5rem;
+    }
+
+    #about strong {
+      color: var(--bone);
+      font-weight: 600;
+    }
+
+    /* ═══════════════ FEATURES ═══════════════ */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .feature-card {
+      background: linear-gradient(135deg, rgba(26, 26, 36, 0.8), rgba(10, 10, 16, 0.9));
+      border: 1px solid rgba(196, 30, 30, 0.1);
+      padding: 2rem;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.3s, transform 0.3s;
+    }
+
+    .feature-card:hover {
+      border-color: rgba(196, 30, 30, 0.4);
+      transform: translateY(-4px);
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 3px;
+      height: 100%;
+      background: var(--blood);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .feature-card:hover::before { opacity: 1; }
+
+    .feature-icon {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+
+    .feature-card h3 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.4rem;
+      letter-spacing: 2px;
+      color: var(--bone);
+      margin-bottom: 0.8rem;
+    }
+
+    .feature-card p {
+      font-size: 0.95rem;
+      color: var(--ash);
+      line-height: 1.7;
+    }
+
+    /* ═══════════════ ENVIRONMENTS ═══════════════ */
+    .env-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .env-item {
+      display: flex;
+      gap: 2rem;
+      align-items: flex-start;
+      padding: 2rem;
+      background: rgba(26, 26, 36, 0.5);
+      border-left: 3px solid var(--blood);
+      transition: background 0.3s;
+    }
+
+    .env-item:hover {
+      background: rgba(42, 42, 56, 0.5);
+    }
+
+    .env-number {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 3rem;
+      color: var(--blood);
+      line-height: 1;
+      opacity: 0.4;
+      min-width: 50px;
+    }
+
+    .env-content h3 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.6rem;
+      letter-spacing: 3px;
+      margin-bottom: 0.5rem;
+    }
+
+    .env-content p {
+      color: var(--ash);
+      line-height: 1.7;
+    }
+
+    /* ═══════════════ PLATFORMS ═══════════════ */
+    .platforms-row {
+      display: flex;
+      gap: 2rem;
+      margin-top: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .platform-card {
+      flex: 1;
+      min-width: 260px;
+      padding: 2.5rem;
+      text-align: center;
+      background: rgba(26, 26, 36, 0.6);
+      border: 1px solid rgba(232, 224, 212, 0.06);
+      transition: border-color 0.3s;
+    }
+
+    .platform-card:hover {
+      border-color: rgba(196, 30, 30, 0.3);
+    }
+
+    .platform-card .platform-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+
+    .platform-card h3 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.8rem;
+      letter-spacing: 3px;
+      margin-bottom: 0.5rem;
+    }
+
+    .platform-card p {
+      color: var(--ash);
+      font-size: 0.9rem;
+    }
+
+    /* ═══════════════ LEGAL SECTIONS ═══════════════ */
+    .legal-zone {
+      background: var(--abyss);
+      border-top: 1px solid rgba(196, 30, 30, 0.15);
+      margin-top: 4rem;
+    }
+
+    .legal-zone section {
+      padding: 4rem 2rem;
+    }
+
+    .legal-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      padding: 2rem;
+      max-width: 1000px;
+      margin: 0 auto;
+      border-bottom: 1px solid rgba(232, 224, 212, 0.06);
+    }
+
+    .legal-nav a {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--ash);
+      text-decoration: none;
+      padding: 6px 14px;
+      border: 1px solid rgba(232, 224, 212, 0.1);
+      transition: all 0.3s;
+    }
+
+    .legal-nav a:hover {
+      color: var(--blood);
+      border-color: var(--blood);
+    }
+
+    .legal-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2rem;
+      letter-spacing: 3px;
+      color: var(--bone);
+      margin-bottom: 1.5rem;
+    }
+
+    .legal-update {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--ash);
+      letter-spacing: 2px;
+      margin-bottom: 2rem;
+      opacity: 0.6;
+    }
+
+    .legal-text {
+      font-size: 0.92rem;
+      color: var(--ash);
+      line-height: 1.9;
+    }
+
+    .legal-text h3 {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--bone);
+      margin-top: 2rem;
+      margin-bottom: 0.8rem;
+      letter-spacing: 1px;
+    }
+
+    .legal-text p {
+      margin-bottom: 1rem;
+    }
+
+    .legal-text a {
+      color: var(--frost);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .legal-text a:hover {
+      color: var(--blood-glow);
+    }
+
+    /* ═══════════════ FOOTER ═══════════════ */
+    footer {
+      text-align: center;
+      padding: 3rem 2rem;
+      border-top: 1px solid rgba(232, 224, 212, 0.04);
+      background: var(--void);
+    }
+
+    footer .footer-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.4rem;
+      letter-spacing: 6px;
+      color: var(--blood);
+      margin-bottom: 1rem;
+    }
+
+    footer p {
+      font-size: 0.78rem;
+      color: var(--ash);
+      opacity: 0.5;
+      line-height: 1.8;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* ═══════════════ RESPONSIVE ═══════════════ */
+    @media (max-width: 768px) {
+      nav .nav-links { display: none; }
+      .env-item { flex-direction: column; gap: 0.5rem; }
+      .legal-nav { flex-direction: column; }
+    }
+
+    /* ═══════════════ GRAIN OVERLAY ═══════════════ */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.03;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    /* ═══════════════ SCROLLBAR ═══════════════ */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--void); }
+    ::-webkit-scrollbar-thumb { background: var(--blood); border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════ NAVIGATION ═══════════════ -->
+<nav>
+  <div class="nav-inner">
+    <a href="#" class="logo">THRESHOLD ZÉRO</a>
+    <ul class="nav-links">
+      <li><a href="#about">Le Jeu</a></li>
+      <li><a href="#features">Gameplay</a></li>
+      <li><a href="#environments">Mondes</a></li>
+      <li><a href="#platforms">Plateformes</a></li>
+      <li><a href="#legal">Légal</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ═══════════════ HERO ═══════════════ -->
+<header class="hero">
+  <div class="hero-badge">⬡ First-Person Shooter ⬡</div>
+  <h1 class="hero-title">
+    THRESHOLD
+    <span>ZÉRO</span>
+  </h1>
+  <p class="hero-subtitle">— Cold As Hell —</p>
+  <p class="hero-tagline">
+    Incarnez un guerrier surpuissant. Traversez l'espace, les châteaux maudits et les profondeurs de l'enfer. 
+    Aucune pitié. Aucun répit. Seule la destruction avance.
+  </p>
+  <div class="hero-cta">
+    <a href="#platforms" class="btn btn-blood">Bientôt Disponible</a>
+    <a href="#about" class="btn btn-ghost">Découvrir</a>
+  </div>
+</header>
+
+<!-- ═══════════════ ABOUT ═══════════════ -->
+<section id="about">
+  <div class="section-marker">// 001 — À propos</div>
+  <h2 class="section-title">L'ENFER N'A JAMAIS ÉTÉ AUSSI FROID</h2>
+  <div class="divider"></div>
+  <p>
+    <strong>Threshold Zéro</strong> est un FPS d'action brutale dans la veine des grands classiques du genre. 
+    Vous incarnez un guerrier surpuissant, propulsé à travers des environnements hostiles — stations spatiales délabrées, 
+    châteaux hantés et royaumes infernaux — avec un seul objectif : <strong>tout détruire</strong>.
+  </p>
+  <p>
+    Le jeu repose sur un combat offensif de type <strong>push-forward</strong> : avancez, éliminez, survivez. 
+    Le système de <strong>Glory Kill</strong> récompense l'agressivité par des exécutions spectaculaires en 9 phases distinctes. 
+    Chaque ennemi abattu, chaque bonus caché découvert et chaque scénario complété alimente votre progression à travers 
+    <strong>10 scénarios progressifs</strong> répartis sur trois environnements uniques.
+  </p>
+  <p>
+    Vos performances sont mesurées par l'expérience collectée, les pièces récoltées, les bonus cachés découverts 
+    et le nombre total de monstres éliminés. Grimpez dans les <strong>classements GameCenter et Steam</strong> 
+    et prouvez que vous êtes le chasseur ultime.
+  </p>
+</section>
+
+<!-- ═══════════════ FEATURES ═══════════════ -->
+<section id="features">
+  <div class="section-marker">// 002 — Gameplay</div>
+  <h2 class="section-title">FONCTIONNALITÉS</h2>
+  <div class="divider"></div>
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">⚔️</div>
+      <h3>COMBAT PUSH-FORWARD</h3>
+      <p>Un système de combat agressif qui récompense l'attaque. Plus vous avancez, plus vous êtes puissant. Reculer, c'est mourir.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">💀</div>
+      <h3>GLORY KILL SYSTEM</h3>
+      <p>9 phases d'exécutions brutales et spectaculaires. Achevez vos ennemis de près pour récupérer santé et munitions.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <h3>PROGRESSION & STATS</h3>
+      <p>XP, pièces, taux de complétion, kills, headshots — chaque action est comptabilisée et alimente votre classement global.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🏆</div>
+      <h3>CLASSEMENTS MONDIAUX</h3>
+      <p>Affrontez le monde entier via les leaderboards GameCenter (iOS) et Steam. Prouvez votre suprématie.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔍</div>
+      <h3>SECRETS & BONUS</h3>
+      <p>Des bonus cachés disséminés dans chaque niveau. L'exploration récompense les joueurs les plus méticuleux.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🎯</div>
+      <h3>10 SCÉNARIOS</h3>
+      <p>Une difficulté progressive à travers 10 missions intenses, chacune avec ses propres défis et ennemis uniques.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ ENVIRONMENTS ═══════════════ -->
+<section id="environments">
+  <div class="section-marker">// 003 — Environnements</div>
+  <h2 class="section-title">TROIS ROYAUMES DE DESTRUCTION</h2>
+  <div class="divider"></div>
+  <div class="env-list">
+    <div class="env-item">
+      <div class="env-number">I</div>
+      <div class="env-content">
+        <h3>LA FONDERIE</h3>
+        <p>Un complexe industriel spatial ravagé par le feu et le métal en fusion. Les forges de l'enfer tournent sans relâche, alimentées par les âmes des damnés. Ici, chaque couloir est un piège mortel.</p>
+      </div>
+    </div>
+    <div class="env-item">
+      <div class="env-number">II</div>
+      <div class="env-content">
+        <h3>LES CATACOMBES</h3>
+        <p>Sous les châteaux maudits s'étendent des catacombes infinies, peuplées de créatures anciennes. L'obscurité est votre pire ennemi — après les hordes qui y grouillent.</p>
+      </div>
+    </div>
+    <div class="env-item">
+      <div class="env-number">III</div>
+      <div class="env-content">
+        <h3>LE NEXUS</h3>
+        <p>Le point de convergence entre les dimensions. Un royaume chaotique où la réalité se disloque, les lois de la physique cèdent, et les démons les plus puissants attendent le combat final.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ PLATFORMS ═══════════════ -->
+<section id="platforms">
+  <div class="section-marker">// 004 — Plateformes</div>
+  <h2 class="section-title">OÙ JOUER</h2>
+  <div class="divider"></div>
+  <div class="platforms-row">
+    <div class="platform-card">
+      <div class="platform-icon">🍎</div>
+      <h3>APP STORE</h3>
+      <p>iPhone & iPad — iOS 16+<br>Classements GameCenter intégrés<br>Contrôles tactiles optimisés</p>
+    </div>
+    <div class="platform-card">
+      <div class="platform-icon">🎮</div>
+      <h3>STEAM</h3>
+      <p>Windows PC<br>Classements Steam intégrés<br>Support manette complet</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ LEGAL ZONE ═══════════════ -->
+<div class="legal-zone" id="legal">
+
+  <div class="legal-nav">
+    <a href="#eula">EULA</a>
+    <a href="#privacy">Vie Privée</a>
+    <a href="#tos">Conditions</a>
+    <a href="#health">Santé</a>
+    <a href="#age">Classification</a>
+    <a href="#ip">Propriété</a>
+    <a href="#disclaimers">Avertissements</a>
+  </div>
+
+  <!-- ═══ EULA ═══ -->
+  <section id="eula">
+    <h2 class="legal-title">CONTRAT DE LICENCE UTILISATEUR FINAL (EULA)</h2>
+    <p class="legal-update">Dernière mise à jour : 8 mars 2026</p>
+    <div class="legal-text">
+      <p>Ce Contrat de Licence Utilisateur Final (« EULA ») est un accord juridique entre vous (« Utilisateur ») et l'éditeur de Threshold Zéro (« Éditeur », « nous », « notre ») régissant votre utilisation du jeu vidéo Threshold Zéro (le « Jeu »), y compris tout contenu, mise à jour, correctif ou extension associé.</p>
+
+      <h3>1. Octroi de licence</h3>
+      <p>L'Éditeur vous accorde une licence personnelle, non exclusive, non transférable, révocable et limitée pour télécharger, installer et utiliser le Jeu sur des appareils que vous possédez ou contrôlez, à des fins de divertissement personnel et non commercial uniquement. Cette licence ne constitue pas une vente du Jeu ni de ses composants.</p>
+
+      <h3>2. Restrictions</h3>
+      <p>Vous vous engagez à ne pas : (a) copier, reproduire, distribuer ou mettre à disposition le Jeu à des tiers ; (b) modifier, adapter, traduire, décompiler, désassembler, procéder à de l'ingénierie inverse ou tenter de dériver le code source du Jeu ; (c) supprimer, altérer ou masquer tout avis de droit d'auteur ou de propriété ; (d) utiliser le Jeu à des fins commerciales, y compris la diffusion en streaming à des fins lucratives sans autorisation écrite ; (e) utiliser des outils de triche, bots, hacks ou tout logiciel tiers conçu pour modifier l'expérience de jeu ou obtenir un avantage déloyal ; (f) exploiter des bugs ou vulnérabilités du Jeu.</p>
+
+      <h3>3. Propriété</h3>
+      <p>Le Jeu, y compris l'ensemble des contenus visuels, audio, narratifs, logiciels et tout autre élément, est et demeure la propriété exclusive de l'Éditeur et de ses concédants de licence. Tous les droits non expressément accordés dans cet EULA sont réservés.</p>
+
+      <h3>4. Mises à jour et modifications</h3>
+      <p>L'Éditeur peut publier des mises à jour, correctifs ou modifications du Jeu à tout moment. Ces mises à jour peuvent être installées automatiquement et sont soumises aux termes de cet EULA. L'Éditeur se réserve le droit de modifier, suspendre ou interrompre tout ou partie du Jeu à tout moment, avec ou sans préavis.</p>
+
+      <h3>5. Résiliation</h3>
+      <p>Cet EULA est effectif dès votre première utilisation du Jeu et reste en vigueur jusqu'à sa résiliation. L'Éditeur peut résilier cette licence à tout moment si vous ne respectez pas les termes de cet EULA. En cas de résiliation, vous devez cesser toute utilisation du Jeu et supprimer toutes les copies installées.</p>
+
+      <h3>6. Exclusion de garantie</h3>
+      <p>LE JEU EST FOURNI « EN L'ÉTAT » ET « TEL QUE DISPONIBLE », SANS AUCUNE GARANTIE D'AUCUNE SORTE, EXPRESSE OU IMPLICITE, Y COMPRIS, MAIS SANS S'Y LIMITER, LES GARANTIES DE QUALITÉ MARCHANDE, D'ADÉQUATION À UN USAGE PARTICULIER ET D'ABSENCE DE CONTREFAÇON. L'ÉDITEUR NE GARANTIT PAS QUE LE JEU SERA EXEMPT D'ERREURS, ININTERROMPU OU EXEMPT DE COMPOSANTS NUISIBLES.</p>
+
+      <h3>7. Limitation de responsabilité</h3>
+      <p>DANS TOUTE LA MESURE PERMISE PAR LA LOI APPLICABLE, L'ÉDITEUR NE SERA EN AUCUN CAS RESPONSABLE DE DOMMAGES INDIRECTS, ACCESSOIRES, SPÉCIAUX, CONSÉCUTIFS OU PUNITIFS, Y COMPRIS LA PERTE DE DONNÉES, DE PROFITS OU DE REVENUS, RÉSULTANT DE VOTRE UTILISATION OU DE VOTRE INCAPACITÉ À UTILISER LE JEU. LA RESPONSABILITÉ TOTALE DE L'ÉDITEUR NE DÉPASSERA PAS LE MONTANT QUE VOUS AVEZ PAYÉ POUR LE JEU AU COURS DES DOUZE (12) MOIS PRÉCÉDANT L'ÉVÉNEMENT DONNANT LIEU À LA RÉCLAMATION.</p>
+
+      <h3>8. Loi applicable</h3>
+      <p>Cet EULA est régi par les lois de la France. Pour les utilisateurs résidant dans l'Union européenne, les droits des consommateurs prévus par les lois de votre pays de résidence s'appliquent dans la mesure où ils offrent une protection supérieure. Rien dans cet EULA ne limite les droits statutaires des consommateurs qui ne peuvent être exclus par la loi.</p>
+    </div>
+  </section>
+
+  <!-- ═══ PRIVACY ═══ -->
+  <section id="privacy">
+    <h2 class="legal-title">POLITIQUE DE CONFIDENTIALITÉ</h2>
+    <p class="legal-update">Dernière mise à jour : 8 mars 2026</p>
+    <div class="legal-text">
+      <p>Cette politique de confidentialité décrit comment nous collectons, utilisons et protégeons vos informations lorsque vous utilisez Threshold Zéro.</p>
+
+      <h3>1. Données collectées</h3>
+      <p>Nous pouvons collecter les catégories de données suivantes : (a) <strong>Données de jeu</strong> — scores, statistiques de progression (kills, headshots, XP, pièces collectées, taux de complétion), données de sauvegarde, et classements ; (b) <strong>Identifiants de plateforme</strong> — identifiant Game Center (iOS) ou identifiant Steam, pseudonyme et avatar de profil ; (c) <strong>Données techniques</strong> — type d'appareil, version du système d'exploitation, langue, fuseau horaire, et journaux de plantage anonymisés ; (d) <strong>Données d'utilisation</strong> — fréquence et durée des sessions de jeu, scénarios joués, interactions dans le jeu.</p>
+
+      <h3>2. Utilisation des données</h3>
+      <p>Nous utilisons ces données pour : faire fonctionner et améliorer le Jeu ; gérer les classements et leaderboards ; corriger les bugs et améliorer les performances ; analyser des tendances d'utilisation agrégées et anonymisées ; respecter nos obligations légales.</p>
+
+      <h3>3. Partage des données</h3>
+      <p>Nous ne vendons jamais vos données personnelles. Nous pouvons partager des données avec : Apple (Game Center) et Valve (Steam) dans le cadre des services de classement ; des prestataires techniques de confiance pour l'hébergement et l'analyse (sous obligations de confidentialité) ; les autorités compétentes lorsque la loi l'exige.</p>
+
+      <h3>4. Stockage et sécurité</h3>
+      <p>Les données de jeu sont stockées localement sur votre appareil et/ou sur les serveurs sécurisés de la plateforme (Apple/Steam). Nous mettons en œuvre des mesures de sécurité techniques et organisationnelles appropriées pour protéger vos informations contre l'accès non autorisé, la perte ou la destruction.</p>
+
+      <h3>5. Droits des utilisateurs (RGPD / CCPA)</h3>
+      <p>Conformément au Règlement Général sur la Protection des Données (RGPD) et au California Consumer Privacy Act (CCPA), vous disposez des droits suivants : droit d'accès à vos données ; droit de rectification ; droit de suppression (« droit à l'oubli ») ; droit de portabilité ; droit d'opposition au traitement ; droit de retirer votre consentement à tout moment. Pour exercer ces droits, contactez-nous à l'adresse indiquée ci-dessous.</p>
+
+      <h3>6. Enfants</h3>
+      <p>Threshold Zéro n'est pas destiné aux enfants de moins de 17 ans. Nous ne collectons pas sciemment des données personnelles d'enfants de moins de 17 ans. Si nous découvrons que de telles données ont été collectées, nous les supprimerons dans les meilleurs délais.</p>
+
+      <h3>7. Cookies et technologies similaires</h3>
+      <p>Le Jeu n'utilise pas de cookies. Cependant, les plateformes de distribution (App Store, Steam) peuvent utiliser leurs propres technologies de suivi conformément à leurs politiques de confidentialité respectives.</p>
+
+      <h3>8. Contact</h3>
+      <p>Pour toute question relative à cette politique de confidentialité : <a href="mailto:contact@thresholdzero.com">contact@thresholdzero.com</a></p>
+    </div>
+  </section>
+
+  <!-- ═══ TOS ═══ -->
+  <section id="tos">
+    <h2 class="legal-title">CONDITIONS GÉNÉRALES D'UTILISATION</h2>
+    <p class="legal-update">Dernière mise à jour : 8 mars 2026</p>
+    <div class="legal-text">
+      <p>En téléchargeant, installant ou utilisant Threshold Zéro, vous acceptez les présentes Conditions Générales d'Utilisation (« CGU »).</p>
+
+      <h3>1. Acceptation</h3>
+      <p>L'utilisation du Jeu vaut acceptation pleine et entière de ces CGU. Si vous n'acceptez pas ces conditions, vous devez cesser d'utiliser le Jeu et le supprimer de vos appareils.</p>
+
+      <h3>2. Achats intégrés (In-App Purchases)</h3>
+      <p>Le Jeu peut proposer des achats intégrés pour des contenus numériques supplémentaires. Tous les achats intégrés sur iOS sont traités exclusivement par Apple via le système d'achat intégré de l'App Store. Sur Steam, les achats sont traités via la plateforme Steam. Tous les achats sont définitifs et non remboursables, sauf disposition contraire prévue par la loi applicable ou les politiques de remboursement de la plateforme concernée.</p>
+
+      <h3>3. Conduite de l'utilisateur</h3>
+      <p>Vous vous engagez à utiliser le Jeu dans le respect des lois applicables. Il est interdit d'utiliser des logiciels de triche, exploits, ou tout procédé visant à altérer le fonctionnement normal du Jeu. Toute violation peut entraîner la suspension ou la suppression de votre accès au Jeu et à ses services en ligne, y compris les classements.</p>
+
+      <h3>4. Contenu généré par l'utilisateur</h3>
+      <p>Si le Jeu permet toute forme de contenu généré par l'utilisateur (captures d'écran, partages de scores, etc.), vous êtes seul responsable de ce contenu. Vous garantissez que ce contenu ne viole aucun droit de tiers ni aucune loi applicable.</p>
+
+      <h3>5. Services en ligne</h3>
+      <p>Certaines fonctionnalités du Jeu (classements, leaderboards, sauvegardes cloud) nécessitent une connexion Internet. L'Éditeur ne garantit pas la disponibilité continue de ces services et se réserve le droit de les modifier ou de les interrompre à tout moment.</p>
+
+      <h3>6. Modifications des CGU</h3>
+      <p>L'Éditeur se réserve le droit de modifier ces CGU à tout moment. Les modifications entrent en vigueur dès leur publication sur cette page. La poursuite de l'utilisation du Jeu après modification constitue votre acceptation des nouvelles conditions.</p>
+    </div>
+  </section>
+
+  <!-- ═══ HEALTH ═══ -->
+  <section id="health">
+    <h2 class="legal-title">AVERTISSEMENT SANTÉ & PHOTOSENSIBILITÉ</h2>
+    <p class="legal-update">Avertissement obligatoire</p>
+    <div class="legal-text">
+      <h3>⚠️ Avertissement sur l'épilepsie photosensible</h3>
+      <p>Un très faible pourcentage de personnes peut être sujet à des crises d'épilepsie ou à des pertes de connaissance lorsqu'il est exposé à certains types de lumières clignotantes ou de motifs lumineux. Ces personnes peuvent subir une crise en regardant certaines images de télévision ou en jouant à certains jeux vidéo. Ce phénomène peut se produire même si la personne n'a aucun antécédent médical d'épilepsie ou n'a jamais eu de crise d'épilepsie.</p>
+      <p>Si vous ou un membre de votre famille avez déjà présenté des symptômes liés à l'épilepsie (crises ou pertes de connaissance) en présence de stimulations lumineuses, veuillez consulter votre médecin avant de jouer. Si vous ressentez l'un des symptômes suivants en cours de jeu — altération de la vision, contractions des yeux ou des muscles, perte de conscience, mouvements involontaires, désorientation ou convulsions — cessez immédiatement de jouer et consultez un médecin.</p>
+
+      <h3>Précautions générales de santé</h3>
+      <p>Ne jouez pas lorsque vous êtes fatigué ou en manque de sommeil. Faites des pauses d'au moins 10 à 15 minutes toutes les heures. Jouez dans une pièce bien éclairée et à une distance raisonnable de l'écran. Si vous ressentez fatigue, douleur ou inconfort aux mains, poignets, bras, yeux ou toute autre partie du corps, cessez de jouer et reposez-vous. Si les symptômes persistent, consultez un médecin.</p>
+
+      <h3>Troubles musculosquelettiques</h3>
+      <p>L'utilisation prolongée de manettes de jeu, claviers, souris ou écrans tactiles peut provoquer des troubles musculosquelettiques tels que le syndrome du canal carpien, des tendinites ou d'autres affections. Prenez des pauses régulières et consultez un professionnel de santé en cas de douleur persistante.</p>
+    </div>
+  </section>
+
+  <!-- ═══ AGE RATING ═══ -->
+  <section id="age">
+    <h2 class="legal-title">CLASSIFICATION PAR ÂGE & CONTENU</h2>
+    <p class="legal-update">Informations de classification</p>
+    <div class="legal-text">
+      <h3>Classification</h3>
+      <p>Threshold Zéro est classé <strong>17+ (Mature)</strong> sur l'App Store et <strong>PEGI 18 / ESRB M (Mature 17+)</strong> sur Steam. Ce jeu n'est pas destiné aux enfants de moins de 17 ans.</p>
+
+      <h3>Descripteurs de contenu</h3>
+      <p>Le jeu contient : violence intense fictive et stylisée ; gore et effets sanglants (fictifs) ; combats fréquents au corps à corps et avec armes à feu ; thèmes sombres et horrifiques ; imagerie d'horreur et environnements inquiétants.</p>
+
+      <h3>Interactions en ligne</h3>
+      <p>Le jeu propose des classements en ligne (leaderboards). Il ne propose ni chat en ligne, ni interactions directes entre joueurs, ni contenu généré par d'autres utilisateurs visible dans le jeu.</p>
+
+      <h3>Achats intégrés</h3>
+      <p>Le Jeu peut proposer des achats intégrés optionnels. Aucun achat n'est nécessaire pour profiter de l'expérience de jeu complète. Aucun mécanisme de type « loot box » (boîte de récompenses aléatoires) n'est présent dans le Jeu.</p>
+
+      <h3>Contrôle parental</h3>
+      <p>Les parents et tuteurs sont invités à utiliser les contrôles parentaux disponibles sur iOS (Temps d'écran) et Steam (Mode Famille) pour gérer l'accès au contenu et aux achats. Apple et Steam ne sont pas responsables du contenu du Jeu — il incombe aux parents de s'assurer que le contenu est approprié pour leurs enfants.</p>
+    </div>
+  </section>
+
+  <!-- ═══ IP ═══ -->
+  <section id="ip">
+    <h2 class="legal-title">PROPRIÉTÉ INTELLECTUELLE</h2>
+    <p class="legal-update">Droits et marques</p>
+    <div class="legal-text">
+      <p>Threshold Zéro, y compris son nom, son logo, ses personnages, ses environnements, sa musique, ses effets sonores, son code source et l'ensemble de ses éléments visuels et audio, sont la propriété exclusive de l'Éditeur et sont protégés par les lois françaises, européennes et internationales sur la propriété intellectuelle, les droits d'auteur et les marques commerciales.</p>
+
+      <p>Toute reproduction, distribution, modification, adaptation, traduction ou utilisation non autorisée de tout ou partie des éléments du Jeu est strictement interdite et constitue une violation des droits de propriété intellectuelle, passible de sanctions civiles et pénales.</p>
+
+      <h3>Marques tierces</h3>
+      <p>Apple, App Store, Game Center et le logo Apple sont des marques déposées d'Apple Inc. Steam et le logo Steam sont des marques déposées de Valve Corporation. Toutes les autres marques mentionnées sur ce site appartiennent à leurs propriétaires respectifs. L'utilisation de ces marques est faite à des fins d'identification uniquement et ne constitue en aucun cas une approbation ou un partenariat.</p>
+
+      <h3>Avertissement</h3>
+      <p>Threshold Zéro est une œuvre de fiction indépendante. Tout ressemblance avec des personnes, lieux ou événements réels est purement fortuite. Le Jeu n'est affilié, associé, autorisé, approuvé ou sponsorisé par aucune des marques tierces mentionnées ci-dessus, ni par aucun autre jeu vidéo, franchise ou propriété intellectuelle existante.</p>
+    </div>
+  </section>
+
+  <!-- ═══ DISCLAIMERS ═══ -->
+  <section id="disclaimers">
+    <h2 class="legal-title">AVERTISSEMENTS GÉNÉRAUX</h2>
+    <p class="legal-update">Mentions légales complémentaires</p>
+    <div class="legal-text">
+      <h3>Jeu vidéo de fiction</h3>
+      <p>Threshold Zéro est une œuvre de divertissement fictive. Toutes les situations, personnages, créatures et environnements présentés dans le Jeu sont entièrement fictifs. Le Jeu ne fait la promotion d'aucune forme de violence réelle, de comportement illégal ou d'activité dangereuse.</p>
+
+      <h3>Absence de jeu d'argent</h3>
+      <p>Threshold Zéro ne contient aucun mécanisme de jeu d'argent réel, de pari, de loterie ou de tirage au sort. Les pièces et monnaies virtuelles dans le Jeu n'ont aucune valeur monétaire réelle et ne peuvent pas être échangées contre de l'argent réel.</p>
+
+      <h3>Disponibilité</h3>
+      <p>La disponibilité du Jeu peut varier selon les régions et les plateformes. L'Éditeur ne garantit pas que le Jeu sera disponible dans tous les pays ou sur tous les appareils. Le contenu du Jeu peut être modifié, mis à jour ou supprimé à tout moment.</p>
+
+      <h3>Configuration requise</h3>
+      <p>Il est de la responsabilité de l'Utilisateur de s'assurer que son appareil dispose de la configuration matérielle et logicielle minimale requise pour faire fonctionner le Jeu. L'Éditeur ne saurait être tenu responsable de problèmes de performance liés à un matériel incompatible ou insuffisant.</p>
+
+      <h3>Services tiers</h3>
+      <p>Le Jeu peut s'intégrer à des services tiers (Game Center, Steam, etc.). L'Éditeur n'est pas responsable des politiques de confidentialité, des conditions d'utilisation ou du fonctionnement de ces services tiers. L'utilisation de ces services est soumise à leurs propres conditions.</p>
+
+      <h3>Non-affiliation Apple & Valve</h3>
+      <p>Ce site web et le Jeu ne sont en aucun cas affiliés, approuvés, sponsorisés ou approuvés par Apple Inc. ou Valve Corporation. Apple n'est pas impliquée dans la production ni la maintenance de Threshold Zéro. Toute réclamation relative au Jeu doit être adressée à l'Éditeur, non à Apple ou Valve.</p>
+
+      <h3>Droit applicable et juridiction</h3>
+      <p>Les présentes mentions légales et l'ensemble des documents juridiques de ce site sont régis par le droit français. Tout litige sera soumis à la compétence exclusive des tribunaux français, sous réserve des droits des consommateurs imposés par les lois de votre pays de résidence.</p>
+
+      <h3>Contact</h3>
+      <p>Pour toute question juridique, réclamation ou exercice de vos droits : <a href="mailto:contact@thresholdzero.com">contact@thresholdzero.com</a></p>
+    </div>
+  </section>
+</div>
+
+<!-- ═══════════════ FOOTER ═══════════════ -->
+<footer>
+  <div class="footer-logo">THRESHOLD ZÉRO</div>
+  <p>
+    © 2026 Threshold Zéro. Tous droits réservés.<br>
+    Apple, App Store et Game Center sont des marques déposées d'Apple Inc.<br>
+    Steam est une marque déposée de Valve Corporation.<br>
+    Threshold Zéro n'est affilié à aucune de ces sociétés.
+  </p>
+</footer>
+
+</body>
+</html>
